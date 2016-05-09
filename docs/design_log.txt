@@ -1,0 +1,344 @@
+music21
+http://web.mit.edu/music21/doc/about/quickStart.html
+
+librosa
+http://colinraffel.com/publications/scipy2015librosa.pdf
+a runthrough of the major components:
+http://nbviewer.ipython.org/github/bmcfee/librosa/blob/master/examples/LibROSA%20demo.ipynb
+documentation:
+https://bmcfee.github.io/librosa/index.html
+
+pydub :: for audio mixing
+https://github.com/jiaaro/pydub#installation
+
+soundcloud api wrapper
+https://github.com/soundcloud/soundcloud-python
+
+Quantified Tasks :: October 18, 2015
+
+EQing
+    regulating the volume of parts of tracks so they mix well
+    (don't want two have two kick drums going at it mano a mano)
+Quantization
+looping
+Feature Detection
+    Vocals
+    Bass (rhythm/percussion)
+Scale Detection (Or similiar)
+Chord Detection -> Conv net 
+Track mixing
+    Function: element wise average of waveforms
+    Function: 
+    phase tracks 
+    
+WAV Format- stick to 16 bit/sample (some libs cannot process 24 bit) TODO - make this better
+
+All capabilities are split in two catagories:
+ANALYSIS and COMPOSITION
+
+GOALS
+    Use feature learning algorithms
+        Neural Nets*
+        probabalistic models
+    be able to recognize 'a good dance track'
+
+To implement the technologies at every step of the way or to produce the best results?
+
+Heuristics:
+    how long until something happens?
+    Start the set with a melodic, no bass intro
+    There must be bass
+    The ideal BPM is ~120 (source: the internet)
+    when mixing tracks, stick one on the left channel, one on the right and some commonality on both
+    
+will there be a test music library available with similiar track distribution? (as in a roughly equal num of songs from respective genres)
+
+October 20, 2015 ::  
+
+DONE [using librosa]
+-Chroma scale (pitch class)
+-Beat Detection
+-Time Stretch
+-Beat Matching
+       
+TODO
+-Phrase Detection/Matching
+-Scale Detection/Matching
+-Chord Detection/Matching
+-Feature Detection/Extraction
+    Vocals
+    Bass (rhythm/percussion)
+-EQ Mastering
+    using envelopes
+    vs using filters
+    avoid clashing of different features
+
+    
+Meeting
+using stft to filter out various frequencies
+phrase detect
+    using upbeat
+        look for strong beat recurrences
+        
+    dirty phrase detect
+        stft of the differences
+            where the differences are the distance between each feature (local maxima)
+            of the onset strength
+	auto correlation...
+
+FEEDBACK
+development feedback
+	Quantifiable sense of progress
+Make milestones
+
+Music visualizer, a line that moves through graph as music is played?
+Just use vlc to track where the music is in playback
+            
+Sources:
+STEVE NALEPA of the Acid, professor of music technology
+
+Run tests on music to find the accuracy of phrase detect methods
+
+PHRASE REFERENCE
+phrase_reference.json
+a dict linking songs (by file name) to an array of their phrase intervals (in seconds)
+
+Compute S-Matrix
+i. use stft/fft/mfcc to find a feature vector for a t length frame of music
+ii. compute the distance between the feature vector and all other feature vectors
+
+Note: STFT is a bunch of windowed ffts
+
+PEAK PICKING
+    for phrases, pick picks such that they are as evenly spaced as possible
+    Favour peaks near beats
+    Note: peaks will not always be evenly spaced
+    consecutive peaks should be evenly spaced 
+
+BEAT CROSS REFERENCE
+cross reference beats with peaks to determine where change intersects with rhythm
+
+Note: a larger c-matrix correlates with fewer peaks...?
+
+There are too many layers of features to hard code in, a neural net would be able to adapt to a scalable number of features
+
+Periodic phrasing fucks up with dream (high vocal content, sparse instrumental, syncopated beat)
+
+Phrase Learning
+Estimate Phrases uses Monte-Carlo esque Markhov chains (verify)
+    Heuristics:
+        Phrases are periodical
+        phrases are x number of beats long
+        phrases follow some melodic (chromagraphic) pattern
+'listen' to a track iteratively, learning about it while concurrently picking phrase intervals (w randomness)
+Periods are then chosen according to the mean periods...?
+*Phrase Detection according to formal heuristics is too rigid:
+    IMPLEMENT LEARNING for phrase feature maps 
+    
+Instead of a straightr cosine distance, weight the lower frequencies higher 
+
+Make a sample size of ~10 20
+
+to cut vocals, cut lower end frequencies to filter for percussion
+
+test out filtereing out different layers or frequencies
+
+Use stft similariaty to compare frequencies
+
+noisiness score: 
+    too many notes!
+    count spectrogram peaks
+    take stft of samples
+    take single slice stft
+    take fourier transform of slice
+    hypo: if high freuquencies have high coefficients = noisey
+    
+KEY GOALS:
+    Build and Test More Efficient approaches to soft classification problems
+    
+how long does a note have to play for it to be a significant note?
+
+100b/m *m/60s = 100b/60s = 1.66 b/s
+
+Assume 4 bars per phrase (16 beats)
+
+What's the difference between a good song and a bad song:
+    there are lots of good songs out there
+
+CONVNET
+to map songs to a latent space
+http://deeplearning.net/software/theano/index.html
+http://benanne.github.io/2014/08/05/spotify-cnns.html
+To Classify:
+    B*NGERS / !B*NGERS
+    vocals / !vocals
+    relaxed / high energy
+
+PHRASE DETECTION
+i. Similiarity Matrix
+ii. RNN
+
+TRANSITIONS
+i. hard cut (no fade)
+ii. even fade in out
+iii. fade seperate parts of the EQ (hi/mid/lo)
+
+Learning Tensor Flow
+python2.7 -m pip install https://storage.googleapis.com/tensorflow/mac/tensorflow-0.5.0-py2-none-any.whl
+
+cross entropy reference:
+http://neuralnetworksanddeeplearning.com/chap3.html
+
+ARCHITECTURE
+Set Building    ->  RNN(LSTM)
+                ->  Convnet to classify songs as
+                        opening/ending/soft/loud
+Phrase Detection->  RNN
+                ->  S-Matrix/Peak picking
+Beat Detection  ->  Librosa
+Mixing          ->  Hard rules
+                    
+LSTM Yoshua bengio : book : tutorial
+http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/239
+RNN Andrej Karpathy : and LSTM
+
+INDUSTRY:
+http://the.echonest.com
+http://www.apple.com/ca/music-memos/
+
+For comparing target and found phrases
+    count number of phrases,
+    count distance
+
+Check how similiar phrases are back to back
+window analysis to deal with varying phrase lengths
+
+look for torch implementation of RNN for speech recognition and generation
+
+USE
+auto mash up of a users music library
+
+CHAR_RNN 
+RNN built to train off a dataset of characters
+what is dropout?
+
+in favour of LSTM vs GRU for music generation
+https://cs224d.stanford.edu/reports/NayebiAran.pdf
+
+Check for computer lab resource access at UTM
+http://ufldl.stanford.edu/tutorial/supervised/SoftmaxRegression/
+
+geoff hinton speech recognition
+http://www.cs.toronto.edu/~fritz/absps/RNN13.pdf
+
+Free AWS with educational 
+
+DEEP DREAM AUDIO
+
+CHAR RNN TENSORFLOW MODEL
+init args
+load/preprocess data
+    vocab: a dictionary of characters to keys
+split data into batches
+    copy batches into x,y batches offset from each other by one
+    
+MUSIC RNN TENSORFLOW BLUEPRINT
+init args
+load/preprocess data
+    data directories each contain a src folder where all source music is stored
+    i. load wav as npy 
+    ii. convert to monochannel (do properly by averaging)
+    iii. scale sample to range [-1,1]
+    iv. perform fft (do proper stft)
+    v. scale fft coeff to [0,1] by v/(2048*2)+1
+    **
+    stft slice signatures: lossy encoding of stfts to numerical ids so music can be represented as a compressed
+    ** or
+    using values of sample to train from
+ split data into batches
+    copy batches into x,y batches offset from each other by one
+Data Flow [shape]:
+    ('wv->np', (8623983,))
+    ('np->fft', (783, 22050))
+    ('fft->chunks', (15, 50, 22050))
+    ...
+    [2n]  wav->numpy array, n is num samples 
+    [n]  reduced to monochannel 
+    
+ ~Model
+ TODO: reduce dimensionality for frequencies that come out of the fft, 22050 is way too many
+    use a mel spectrogram maybe
+    or a chromagram even for super low granularity
+        
+Once the RNN is trained, use it to generate music sampling conversation, so the music flows as a burble
+
+TODO: BLOG THIS
+    Document the process of implementing an RNN for music generation
+    
+TODO: train just on the low end frequencies, ie III for the beat, III for the bass
+
+DIMENSIONALITY REDUCITON
+Discard high freqs in stft (to avoid downsampling issues)
+
+Check outputs for different input wavs
+to try and identify features
+
+*char data is one-hot, stft coeff data is not
+solns
+    round all continuous variables to bernoulli 1 or 0
+    OR take the output variable
+    
+    look for access to gaussian probability outputs from tensor flow
+
+TEST SIMPLE PATTERNS
+Char RNN
+
+Come up with a good logging system
+
+CRASH BACKUP
+crash after a day of training loses model, can i reload into the model?
+
+TRAIN 
+chord progressions
+train beat invariance into the network
+train on classical piano compositions
+	preprocess by splitting upper and lower frequencies
+train on reduced dimensionality copy
+use it as a transition
+train on raw signal
+try training to predict the next chord given melody an chord history
+
+
+DATABASES
+of songs split into mutlitracks... found:
+	http://www.cambridge-mt.com/ms-mtk.htm#Electronica
+	http://medleydb.weebly.com/downloads.html
+	http://bass-db.gforge.inria.fr/BASS-dB/?show=browse&id=mtracks
+ 
+ACCOMPANIEMENT TRAINING
+Used the built in tool to generate x and y vectors for seperate tracks of the song
+trained on both streams
+
+HARDARE RESEARCH
+http://timdettmers.com/2015/03/09/deep-learning-hardware-guide/
+
+GRAPHICS
+NVidia GTX980 
+or 
+NVidia Titan X
+
+clockwork RNN, alt to LSTM
+http://arxiv.org/abs/1402.3511
+
+song2vec...?
+
+LSTM STEPS
+IS there such thing as a variable length LSTM? OR are they alla fixed number of steps that are unrolled...?
+
+MIDI Generator
+base off of
+https://github.com/vanstorm9/Midi-AI-Melody-Generator
+
+ONION IP
+142.1.44.64
+
